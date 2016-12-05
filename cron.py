@@ -167,7 +167,7 @@ class ApolloCrond(object):
 
     def execCmd(self, cmd, ctid):
         """crontab 的实际执行过程"""
-        pscmd = "ps -A -opid,ppid,state,user,cmd|grep '\-\-ctid %s;'|grep -v 'grep '" % ctid
+  oc      pscmd = "ps -A -opid,ppid,state,user,cmd|grep '\-\-ctid %s;'|grep -v 'grep '" % ctid
         rets, retv = getstatusoutput(pscmd)
         retv = retv.strip()
         log.info('ps 结果: \n%s' % retv)
@@ -345,7 +345,7 @@ if '__main__' == __name__:
         from util.logger import log
         log.setDebug()
 
-    tasksend = multiprocessing.Process(target=sendWork,
+    tasksend = multipressing.Process(target=sendWork,
                                 args=(queue, DEFAULT['server_listener']))
     ap_crond = multiprocessing.Process(target=cronWork,
                                 args=(queue, DEFAULT['crontab']))
