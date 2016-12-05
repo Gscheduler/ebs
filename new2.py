@@ -5,7 +5,7 @@ from apscheduler.schedulers.background import BlockingScheduler
 from ConfigParser import ConfigParser,MissingSectionHeaderError
 from socket import gethostname
 import subprocess
-
+from  multiprocessing import Pool
 
 
 class TaskSched:
@@ -15,6 +15,7 @@ class TaskSched:
         self.parser = ConfigParser()
         self.options = {}
         self.hostname = gethostname()
+        self._pool = Pool(4)
 
 
     def __repr__(self):
@@ -25,10 +26,10 @@ class TaskSched:
         try:
             self.parser.read(config_path)
         except MissingSectionHeaderError:
-            raise SyntaxError("Initialiser contains no section headers")
+            raise SyntaxError("Initialiser contains no section headers.")
 
         if not len(self.parser.sections()):
-            print  "empty config file."
+            print  "Empty config file."
 
         for section in self.parser.sections():
             job = dict(self.parser.items(section))
@@ -41,14 +42,19 @@ class TaskSched:
                 }
                 self.interval_jobs(section,new_interval_jobs)
 
+
+
     def interval_jobs(self,section,new_interval_jobs):
-        cmd = new_interval_jobs[section]['cmd']
-        check_job_cmd = self.check_jobs(cmd)
-        if check_job_cmd != True:
-            print cmd
+        for job_key,job_value in new_interval_jobs.items():
+            job_value_cmd = self.check_jobs(job_value['cmd'])
+            if job_value_cmd != True:
+                print job_value['cmd']
+
+    def process_pool(self):
+        self._pool.apply_async(self.block_sched(), args=(i,))
 
 
-    def cron_jobs(self,section,options):
+    def block_sched(self):
         pass
 
     def check_jobs(self,job_name):
@@ -59,14 +65,10 @@ class TaskSched:
             val = p.stdout.read()
             if job_name  in val:
                 is_exist = True
-                return is_exist,job_name
-
-
-
+                return is_exist
 
 if __name__ == '__main__':
      TaskSched().parser_config('/Users/Corazon/PycharmProjects/untitled7/test.ini')
-
 
 
 

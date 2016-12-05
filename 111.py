@@ -1,17 +1,19 @@
-import time, threading
-import os
+from multiprocessing import Pool
+import os, time, random
 
-def loop():
-    print('thread %s is running...' % threading.current_thread().name)
-    n = 0
-    while n < 5:
-        n = n + 1
-        print('thread %s >>> %s' % (threading.current_thread().name, n))
-        time.sleep(1)
-    print('thread %s ended.' % threading.current_thread().name)
+def long_time_task(name):
+    print('Run task %s (%s)...' % (name, os.getpid()))
+    start = time.time()
+    time.sleep(random.random() * 3)
+    end = time.time()
+    print('Task %s runs %0.2f seconds.' % (name, (end - start)))
 
-print('thread %s is running...' % threading.current_thread().name)
-t = threading.Thread(target=loop, name='os.getpgid()')
-t.start()
-t.join()
-print('thread %s ended.' % threading.current_thread().name)
+if __name__=='__main__':
+    print('Parent process %s.' % os.getpid())
+    p = Pool(4)
+    for i in range(15):
+        p.apply_async(long_time_task, args=(i,))
+    print('Waiting for all subprocesses done...')
+    p.close()
+    p.join()
+    print('All subprocesses done.')
