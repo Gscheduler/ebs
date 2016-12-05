@@ -2,7 +2,6 @@ from pymongo import MongoClient
 from apscheduler.schedu
 from apscheduler.executors.pool import ThreadPoolExecutor,ProcessPoolExecutor
 
-
 def my_job():
     print 'hello world'
 

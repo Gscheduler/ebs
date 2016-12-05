@@ -11,7 +11,6 @@ class TaskSched:
         self.parser = ConfigParser()
         self.options = {}
 
-
     def __repr__(self):
         return '<Program is %r>' % self.name
 
@@ -37,16 +36,13 @@ class TaskSched:
         print  self.parser.get(section,options[0])
 
     def cron_jobs(self,section,options):
-        print section
+        task_num = section
         task_name = self.parser.get(section,options[0])
         task_contect = self.parser.get(section,options[1])
         task_contect_show = self.parser.get(section,options[2])
-        print  self.parser.get(section,options[3])
-        a = 0
-        a += 1
-        if a > 3:
+        #print  self.parser.get(section,options[3])
+        print task_num
 
-            return None
 
 
 
@@ -56,6 +52,7 @@ class TaskSched:
 
 if __name__ == '__main__':
      TaskSched().read_config('/usr/local/Cellar/python/2.7.11/bin/task.ini')
+from apscheduler.triggers.base import BaseTrigger
 
 
 
