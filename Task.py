@@ -11,7 +11,6 @@ from  multiprocessing import Pool
 class TaskSched:
 
     def __init__(self):
-        #self.sched = BlockingScheduler()
         self.sched = BackgroundScheduler()
         self.parser = ConfigParser()
         self.options = {}

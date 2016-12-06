@@ -1,5 +1,5 @@
 
-import su
+import subprocess
 from apscheduler.schedulers.background import BackgroundScheduler,BlockingScheduler
 from ConfigParser import ConfigParser
 #from jobs import *
@@ -7,8 +7,9 @@ from ConfigParser import ConfigParser
 import
 config_file = '/Users/Corazon/PycharmProjects/untitled7/test1.ini'
 
-def tick():
-    return
+def tick(cmd):
+    command = "ps aux | grep '%s' |grep -v grep" % cmd
+    return subprocess.Popen(command,shell=True,stdout=subprocess.PIPE)
 
 if __name__ == '__main__':
     parser = ConfigParser()

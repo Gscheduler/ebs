@@ -12,7 +12,6 @@ class TaskSched:
 
     def __init__(self):
         #self.sched = BlockingScheduler()
-        self.sched = BackgroundScheduler()
         self.parser = ConfigParser()
         self.options = {}
         self.hostname = gethostname()
@@ -45,16 +44,17 @@ class TaskSched:
 
 
     def task2(self,):
-        cmd = "%s" % self.a
-        subprocess.Popen(cmd,shell=True)
+        print "hello world"
+        #cmd = "%s" % self.a
+        #subprocess.Popen(cmd,shell=True)
 
     def interval_jobs(self,new_interval_jobs):
         for job_key,job_value in new_interval_jobs.items():
             job_value_cmd = self.check_jobs(job_value['cmd'])
             if job_value_cmd != True:
-                print job_value['cmd']
+                #print job_value['cmd']
                 self.a = job_value['cmd']
-                self.block_sched(job_value['sec'])
+               # self.block_sched(job_value['sec'])
                 #continue
 
    # def process_pool(self):
@@ -70,16 +70,15 @@ class TaskSched:
                 is_exist = True
                 return is_exist
 
-    def block_sched(self,sec):
-        s = int(sec)
-        self.sched.add_job(self.task2,'interval',seconds=s)
+   # def block_sched(self,sec):
+   #     s = int(sec)
+   #     sched = BackgroundScheduler()
+   #     sched.add_job(self.task2,'interval',seconds=1)
+   #     sched.start()
 
-        try:
-            self.sched.start()
-        except IOError,e:
-            pass
+            #print('Press Ctrl+{0} to exit'.format('Break' if os.name == 'nt' else 'C'))
 
-        self.sched.get_jobs()
+        #self.sched.get_jobs()
         #self.sched.shutdown()
         #pass
 
@@ -87,5 +86,11 @@ class TaskSched:
     #    print "hello world"
 
 
+def task2():
+    print "hello world"
+
 if __name__ == '__main__':
-     TaskSched().parser_config('/Users/Corazon/PycharmProjects/untitled7/test.ini')
+     #TaskSched().parser_config('/Users/Corazon/PycharmProjects/untitled7/test.ini')
+     sched = BackgroundScheduler()
+     sched.add_job(task2,'interval',seconds=3)
+     sched.start()
