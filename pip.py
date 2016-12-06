@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding=utf-8
 import os
-from apscheduler.schedulers.background import BlockingScheduler
+from apscheduler.schedulers.background import BlockingScheduler,BackgroundScheduler
 from ConfigParser import ConfigParser,MissingSectionHeaderError
 from socket import gethostname
 import subprocess
@@ -11,7 +11,8 @@ from  multiprocessing import Pool
 class TaskSched:
 
     def __init__(self):
-        self.sched = BlockingScheduler()
+        #self.sched = BlockingScheduler()
+        self.sched = BackgroundScheduler()
         self.parser = ConfigParser()
         self.options = {}
         self.hostname = gethostname()
@@ -41,17 +42,23 @@ class TaskSched:
                     'sec': job['task_interval']
                 }
                 self.interval_jobs(new_interval_jobs)
-                #print new_interval_jobs
 
+
+    def task2(self,):
+        cmd = "%s" % self.a
+        subprocess.Popen(cmd,shell=True)
 
     def interval_jobs(self,new_interval_jobs):
         for job_key,job_value in new_interval_jobs.items():
             job_value_cmd = self.check_jobs(job_value['cmd'])
             if job_value_cmd != True:
-                self.block_sched(job_value['cmd'], 'interval', int(job_value['sec']))
+                print job_value['cmd']
+                self.a = job_value['cmd']
+                self.block_sched(job_value['sec'])
+                #continue
 
-    def process_pool(self):
-        self._pool.apply_async(self.block_sched(), args=(i,))
+   # def process_pool(self):
+   #     self._pool.apply_async(self.block_sched(), args=(i,))
 
     def check_jobs(self,job_name):
         ck_cmd = "ps aux | grep '%s' |grep -v grep" % job_name
@@ -63,9 +70,17 @@ class TaskSched:
                 is_exist = True
                 return is_exist
 
-    def block_sched(self,cmd,trigger,sec):
-        self.sched.add_job(lambda :cmd,'interval',seconds=sec)
+    def block_sched(self,sec):
+        s = int(sec)
+        self.sched.add_job(self.task2,'interval',seconds=s)
         self.sched.start()
+        self.sched.get_jobs()
+        #self.sched.shutdown()
+        #pass
+
+    #def task(self):
+    #    print "hello world"
+
 
 if __name__ == '__main__':
      TaskSched().parser_config('/Users/Corazon/PycharmProjects/untitled7/test.ini')
