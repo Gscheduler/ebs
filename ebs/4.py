@@ -2,15 +2,12 @@
 # coding=utf-8
 import os
 from apscheduler.schedulers.background import BlockingScheduler,BackgroundScheduler
-
 from ConfigParser import ConfigParser,MissingSectionHeaderError
 from socket import gethostname
 import subprocess
 from  multiprocessing import Pool
-import logging
 
 
-conf_ini = "/Users/Corazon/PycharmProjects/untitled7/test1.ini"
 class TaskSched:
 
     def __init__(self):
@@ -18,6 +15,7 @@ class TaskSched:
         self.parser = ConfigParser()
         self.options = {}
         self.hostname = gethostname()
+        self._pool = Pool(4)
 
 
     def __repr__(self):
@@ -33,7 +31,6 @@ class TaskSched:
         if not len(self.parser.sections()):
             print  "Empty config file."
 
-        n = 0
         for section in self.parser.sections():
             job = dict(self.parser.items(section))
             if self.hostname in [name.strip() for name in job['hostlist'].split(',')]:
@@ -43,25 +40,29 @@ class TaskSched:
                     'cmd': job['task_content'].strip(),
                     'sec': job['task_interval']
                 }
+            for job_key,job_value in new_interval_jobs.items():
+                job_value_cmd = self.check_jobs(job_value['cmd'])
+                if job_value_cmd != True:
+                    _cmd = self.task(job_value['cmd'])
+                    self.block_sched(seljob_value['sec'])
+                    print new_interval_jobs
 
-                result = self.check_jobs(new_interval_jobs[section]['cmd'])
-                n += 1
-        return new_interval_jobs,result,n
 
-
-    def task2(self):
-        cmd = "%s" % self._cmd
+    def task(self,task_content):
+        cmd = "%s" % task_content
         return subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
+
+    def interval_jobs(self):
+        pass
+                #continue
 
    # def process_pool(self):
    #     self._pool.apply_async(self.block_sched(), args=(i,))
-    def t(self):
-        print "hello world"
 
-    def add_sched(self):
-        jobinfo,jobstatus,jobnum= self.parser_config(conf_ini)
-        for jobkey,jobvalue in jobinfo.items():
-            print jobkey,jobvalue
+
+    def block_sched(self,sec):
+        s = int(sec)
+
 
     def check_jobs(self,job_name):
         ck_cmd = "ps aux | grep '%s' |grep -v grep" % job_name
@@ -71,8 +72,7 @@ class TaskSched:
             val = p.stdout.read()
             if job_name  in val:
                 is_exist = True
-        return is_exist
+                return is_exist
 
 if __name__ == '__main__':
-     ap_sched = TaskSched()
-     ap_sched.add_sched()
+     TaskSched().parser_config('/Users/Corazon/PycharmProjects/untitled7/test.ini')
