@@ -6,6 +6,7 @@ from apscheduler.schedulers.background import BlockingScheduler,BackgroundSchedu
 from ConfigParser import ConfigParser,MissingSectionHeaderError
 from socket import gethostname
 import subprocess
+import time
 from  multiprocessing import Pool
 import logging
 
@@ -43,16 +44,27 @@ class TaskSched:
                     'cmd': job['task_content'].strip(),
                     'sec': job['task_interval']
                 }
-
-                result = self.check_jobs(new_interval_jobs[section]['cmd'])
-                n += 1
                 print new_interval_jobs
-                return new_interval_jobs,result,n
+                result = self.check_jobs(new_interval_jobs[section]['cmd'])
+                if not result:
+                    for jobkey,jobinfo in new_interval_jobs.items():
+                        t_list = []
+                        t_list.append(jobinfo['cmd'])
+                        self.sched.add_job(self.task2,'interval',t_list,seconds=int(jobinfo['sec']),id=jobkey,name=jobinfo['name'])
+                        print t_list
+        self.sched.start()
+        self.sched.get_jobs()
+        try:
+            while True:
+                time.sleep(3)
+                print "test"
+        except Exception:
+            pass
 
 
-    def task2(self):
-        cmd = "%s" % self._cmd
-        return subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
+    def task2(self,cmd):
+        task = "%s" % cmd
+        return subprocess.Popen(task,shell=True,stdout=subprocess.PIPE)
 
    # def process_pool(self):
    #     self._pool.apply_async(self.block_sched(), args=(i,))
@@ -60,11 +72,7 @@ class TaskSched:
         print "hello world"
 
     def add_sched(self):
-        while True:
-            jobinfo,jobstatus,jobnum= self.parser_config(conf_ini)
-            for jobkey,jobvalue in jobinfo.items():
-                print jobkey,jobvalue
-
+        pass
     def check_jobs(self,job_name):
         ck_cmd = "ps aux | grep '%s' |grep -v grep" % job_name
         p = subprocess.Popen(ck_cmd,shell=True,stdout=subprocess.PIPE)
@@ -77,4 +85,4 @@ class TaskSched:
 
 if __name__ == '__main__':
      ap_sched = TaskSched()
-     ap_sched.add_sched()
+     ap_sched.parser_config(conf_ini)
