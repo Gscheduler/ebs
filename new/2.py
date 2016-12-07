@@ -34,19 +34,19 @@ class TaskSched:
             print  "Empty config file."
 
         n = 0
-        for section in self.parser.sections():
-            job = dict(self.parser.items(section))
-            if self.hostname in [name.strip() for name in job['hostlist'].split(',')]:
-                new_interval_jobs = {}
-                new_interval_jobs[section] = {
-                    'name': job['task_name'].strip(),
-                    'cmd': job['task_content'].strip(),
-                    'sec': job['task_interval']
-                }
+        job = dict(self.parser.items(section))
+        if self.hostname in [name.strip() for name in job['hostlist'].split(',')]:
+            new_interval_jobs = {}
+            new_interval_jobs[section] = {
+                'name': job['task_name'].strip(),
+                'cmd': job['task_content'].strip(),
+                'sec': job['task_interval']
+            }
 
-                result = self.check_jobs(new_interval_jobs[section]['cmd'])
-                n += 1
-        return new_interval_jobs,result,n
+            result = self.check_jobs(new_interval_jobs[section]['cmd'])
+            n += 1
+            print new_interval_jobs
+            return new_interval_jobs,result,n
 
 
     def task2(self):
@@ -59,9 +59,10 @@ class TaskSched:
         print "hello world"
 
     def add_sched(self):
-        jobinfo,jobstatus,jobnum= self.parser_config(conf_ini)
-        for jobkey,jobvalue in jobinfo.items():
-            print jobkey,jobvalue
+        for section in self.parser.sections():
+            jobinfo,jobstatus,jobnum= self.parser_config(conf_ini)
+            for jobkey,jobvalue in jobinfo.items():
+                print jobkey,jobvalue
 
     def check_jobs(self,job_name):
         ck_cmd = "ps aux | grep '%s' |grep -v grep" % job_name
