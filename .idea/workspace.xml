@@ -6,9 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="f33ba1b7-d5e2-4d9b-bd35-17f9f50c0d93" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/echo1.sh" afterPath="$PROJECT_DIR$/echo1.sh" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/echo2.sh" afterPath="$PROJECT_DIR$/echo2.sh" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/new/2.py" afterPath="$PROJECT_DIR$/new/2.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sch.log" afterPath="$PROJECT_DIR$/sch.log" />
     </list>
     <ignored path="untitled7.iws" />
