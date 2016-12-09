@@ -10,13 +10,14 @@ from ConfigParser import ConfigParser,MissingSectionHeaderError
 from socket import gethostname
 import subprocess
 import time
+import commands
 from  multiprocessing import Pool
 
 conf_ini = "/Users/Corazon/PycharmProjects/untitled7/test1.ini"
 class TaskSched:
 
     def __init__(self):
-        #self._sched = BackgroundScheduler(replace_existing=True)
+        # self._sched = BackgroundScheduler(replace_existing=True)
         self.parser = ConfigParser()
         self._hostname = gethostname()
         self._job_list = []
@@ -39,14 +40,13 @@ class TaskSched:
                 new_interval_jobs[section] = {
                     'name': job['task_name'].strip(),
                     'cmd': job['task_content'].strip(),
-                    'sec': job['task_interval']
+                    'sec': job['task_interval'].split()
                 }
 
                 self._job_list.append(new_interval_jobs)
         return self._job_list,len(self._job_list)
 
     def task(self,cmd):
-         # return cmd
         task = "%s" % cmd
         return subprocess.Popen(task,shell=True,stdout=subprocess.PIPE)
 
@@ -55,14 +55,13 @@ class TaskSched:
         for num in range(job_len):
             job_info = job_list[num]
             for jobkey,jobvalue in job_info.items():
+                arg_list = []
                 result = self.check_jobs(jobvalue['cmd'])
-                if result:
-                    t_list = []
-                    t_list.append(jobvalue['cmd'])
-                    self.sched_init(self.task,'interval',t_list,seconds=int(jobvalue['sec']),id=jobkey,name=jobvalue['name'])
-                    a = self._sched.get_jobs()
-                    print a
-                    self._sched.start()
+                if result and len(jobvalue['sec']) == 1:
+                    arg_list.append(jobvalue['cmd'])
+                    self._sched.add_job(self.task, 'interval', arg_list, seconds=int(''.join(jobvalue['sec'])),id=jobkey, name=jobvalue['name'])
+                elif result and len(jobvalue['sec']) == 5:
+                    pass
 
     def check_jobs(self,job_name):
         ck_cmd = "ps aux | grep '%s' |grep -v grep" % job_name
@@ -73,12 +72,12 @@ class TaskSched:
             if job_name  in val:
                 is_exist = False
         return is_exist
-
-    def sched_init(self,func,interval,option,**args):
-        jobstores = {
-            'default': MemoryJobStore(),
+    #
+    def sched_init(self):
+        # jobstores = {
+            # 'default': MemoryJobStore(),
             # 'sqlalchemy': SQLAlchemyJobStore(url="'sqlite:///' + os.path.join(basedir, 'data.sqlite'")
-        }
+        # }
         executors = {
             'default': ThreadPoolExecutor(30),
             'processpool': ProcessPoolExecutor(12)
@@ -87,20 +86,25 @@ class TaskSched:
             'coalesce': False,
             'max_instances': 3
         }
-        self._sched = BackgroundScheduler(jobstores=jobstores, executors=executors, job_defaults=job_defaults)
-        self._sched.add_job(func,interval,option,**args)
+        # sched = BackgroundScheduler(jobstores=jobstores, executors=executors, job_defaults=job_defaults)
+        sched = BackgroundScheduler(executors=executors, job_defaults=job_defaults)
+
+        return sched
 
 
 if __name__ == '__main__':
     ap_sched = TaskSched()
     ap_sched.add_sched()
+    ap_sched._sched.start()
     try:
         while True:
             time.sleep(3)
             a = ap_sched._sched.get_job('4')
             b = ap_sched._sched.get_job('5')
             c = ap_sched._sched.get_job('6')
-            print a,b,c
+            print a
+            print b
+            print c
 
     except KeyboardInterrupt:
         ap_sched._sched.shutdown()
