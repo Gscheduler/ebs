@@ -2,6 +2,7 @@
 # coding=utf-8
 import os
 from apscheduler.schedulers.background import BlockingScheduler,BackgroundScheduler
+from apscheduler.jobstores.memory import MemoryJobStore
 
 from ConfigParser import ConfigParser,MissingSectionHeaderError
 from socket import gethostname
@@ -15,10 +16,11 @@ conf_ini = "/Users/Corazon/PycharmProjects/untitled7/test1.ini"
 class TaskSched:
 
     def __init__(self):
-        self.sched = BackgroundScheduler()
+        self.sched = BackgroundScheduler(deamonic=False)
         self.parser = ConfigParser()
         self.options = {}
         self.hostname = gethostname()
+        self.sched2 = BlockingScheduler()
 
 
     def __repr__(self):
@@ -44,27 +46,39 @@ class TaskSched:
                     'cmd': job['task_content'].strip(),
                     'sec': job['task_interval']
                 }
-                
                 print new_interval_jobs
                 result = self.check_jobs(new_interval_jobs[section]['cmd'])
+                self.sched.start()
                 if not result:
                     for jobkey,jobinfo in new_interval_jobs.items():
                         t_list = []
                         t_list.append(jobinfo['cmd'])
                         self.sched.add_job(self.task2,'interval',t_list,seconds=int(jobinfo['sec']),id=jobkey,name=jobinfo['name'])
-                        print t_list
-        self.sched.start()
-        try:
-            while True:
-                time.sleep(3)
-        except KeyboardInterrupt,SystemExit:
-            self.sched.shutdown()
+        a = self.sched.get_jobs()
+        print a
+
+        m = MemoryJobStore()
 
 
+        # try:
+        #    while True:
+        #         self.sched.modify_job('5',jobstore=m,second=30,name='test')
+        #         # self.sched.reschedule_job('5')
+        #         b = self.sched.get_jobs()
+        #         print b
+        #         #
+        #         # self.sched.reschedule_job('5')
+        #         test_l = ['/bin/bash /Users/Corazon/PycharmProjects/untitled7/echo3.sh']
+        # except Exception:
+        #     self.sched.shutdown()
+        # b = self.sched.get_jobs()
+        # print b
     def task2(self,cmd):
         task = "%s" % cmd
         return subprocess.Popen(task,shell=True,stdout=subprocess.PIPE)
 
+   # def process_pool(self):
+   #     self._pool.apply_async(self.block_sched(), args=(i,))
     def t(self):
         print "hello world"
 

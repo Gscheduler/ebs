@@ -1,4 +1,4 @@
 #!/bin/bash
 
-echo "hello world from 3.sh " >> sch.log
+echo "hello world from test!!!!!!.sh " >> sch.log
 

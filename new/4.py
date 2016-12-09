@@ -3,12 +3,12 @@
 import os
 from apscheduler.schedulers.background import BlockingScheduler,BackgroundScheduler
 
+
 from ConfigParser import ConfigParser,MissingSectionHeaderError
 from socket import gethostname
 import subprocess
 import time
 from  multiprocessing import Pool
-import logging
 
 
 conf_ini = "/Users/Corazon/PycharmProjects/untitled7/test1.ini"
@@ -19,13 +19,14 @@ class TaskSched:
         self.parser = ConfigParser()
         self.options = {}
         self.hostname = gethostname()
+        self.sched2 = BlockingScheduler()
 
 
-    def __repr__(self):
-        return '<Program is %r>' % self.name
+  #  def __repr__(self):
+  #       return '<Program is %r>' % self.name
 
 
-    def parser_config(self,config_path):
+    def parser_config(self,config_path,inter):
         try:
             self.parser.read(config_path)
         except MissingSectionHeaderError:
@@ -50,14 +51,17 @@ class TaskSched:
                     for jobkey,jobinfo in new_interval_jobs.items():
                         t_list = []
                         t_list.append(jobinfo['cmd'])
-                        self.sched.add_job(self.task2,'interval',t_list,seconds=int(jobinfo['sec']),id=jobkey,name=jobinfo['name'])
+
+                        self.sched.add_job(self.task2,inter,t_list,seconds=int(jobinfo['sec']),id=jobkey,name=jobinfo['name'])
                         print t_list
         self.sched.start()
-        self.sched.get_jobs()
         try:
             while True:
+                # print "test"
                 time.sleep(3)
-                print "test"
+                a = self.sched.get_job('4')
+                print a
+          #test_l = ['/bin/bash /Users/Corazon/PycharmProjects/untitled7/echo3.sh']
         except Exception:
             pass
 
@@ -85,4 +89,4 @@ class TaskSched:
 
 if __name__ == '__main__':
      ap_sched = TaskSched()
-     ap_sched.parser_config(conf_ini)
+     ap_sched.parser_config(conf_ini,'interval')
