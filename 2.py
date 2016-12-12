@@ -10,7 +10,7 @@ from ConfigParser import ConfigParser,MissingSectionHeaderError
 from socket import gethostname
 import subprocess
 import time
-import commands
+# import tmp
 
 conf_ini = "/Users/Corazon/PycharmProjects/untitled7/test1.ini"
 
@@ -24,12 +24,18 @@ LISTENER_JOB = (EVENT_JOB_ADDED |
 JOB_DEFAULTS = {
     'misfire_grace_time': 1,
     'coalesce': False,
-    'max_instances': 2
+    'max_instances': 3
 }
 EXECUTORS = {
     'default': ThreadPoolExecutor(1),
     'processpool': ProcessPoolExecutor(4)
 }
+
+def getstatusoutput(cmd, maxoutput=20481):
+        p = subprocess.Popen('%s' % cmd, shell=True, stdout=subprocess.PIPE)
+
+
+
 
 
 class TaskSched:
@@ -63,10 +69,17 @@ class TaskSched:
                 self._job_list.append(new_interval_jobs)
         return self._job_list,len(self._job_list)
 
-    def task(self,cmd):
-        task = "%s" % cmd
-        return subprocess.Popen(task,shell=True,stdout=subprocess.PIPE)
+    def task2(self,cmd):
+        subprocess.Popen('%s' % cmd,shell=True,stdout=subprocess.PIPE)
 
+    def task(self,cmd):
+        start = time.time()
+        # status, output = getstatusoutput(cmd)
+        getstatusoutput(cmd)
+        end = time.time()
+        exec_time = end - start
+        # return {'seq': 3, 'exec_time': '%.3f' % exec_time, 'stats': status, 'output': output}
+        print exec_time
 
     def load_sched(self):
         job_list,job_len=self.parser_config(conf_ini)
@@ -74,11 +87,11 @@ class TaskSched:
             job_info = job_list[num]
             for jobkey,jobvalue in job_info.items():
                 arg_list = []
-                result = self.check_jobs(jobvalue['cmd'])
-
+                result = self.check_jobs(''.join(jobvalue['cmd']))
                 if result and len(jobvalue['sec']) == 1:
                     arg_list.append(jobvalue['cmd'])
-                    self.add_task(self.task2,'interval',arg_list,seconds=int(''.join(jobvalue['sec'])),id=jobkey, name=jobvalue['name'])
+                    # self.add_task(self.task,'interval',arg_list,seconds=int(''.join(jobvalue['sec'])),id=jobkey, name=jobvalue['name'])
+                    self.add_task(self.task,'interval',arg_list,seconds=int(''.join(jobvalue['sec'])),id=jobkey, name=jobvalue['name'])
                 elif result and len(jobvalue['sec']) == 5:
                     pass
 
@@ -98,10 +111,11 @@ if __name__ == '__main__':
     ap_sched = TaskSched()
     ap_sched.load_sched()
     ap_sched._sched.start()
-    try:
-        while True:
-            time.sleep(3)
-            a = ap_sched._sched.get_jobs()
-            print a
-    except KeyboardInterrupt:
-        ap_sched._sched.shutdown()
+
+    # try:
+    while True:
+        time.sleep(3)
+        a = ap_sched._sched.get_jobs()
+        print a
+    # except KeyboardInterrupt:
+    #     ap_sched._sched.shutdown()
