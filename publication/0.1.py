@@ -1,59 +1,49 @@
 #!/usr/bin/env python
 # coding=utf-8
+
 import os
 from apscheduler.schedulers.background import BackgroundScheduler
-# from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
-# from apscheduler.jobstores.memory import MemoryJobStore
 from apscheduler.executors.pool import ThreadPoolExecutor,ProcessPoolExecutor
-from apscheduler.events import *
+import logging
+import logging.handlers
 from ConfigParser import ConfigParser,MissingSectionHeaderError
 from socket import gethostname
 import subprocess
 import time
-# import tmp
-from tempfile import TemporaryFile
+
+LOG_FILE = 'tst.log'
+
+handler = logging.handlers.RotatingFileHandler(LOG_FILE, maxBytes=1024 * 1024, backupCount=5)  # 实例化handler
+fmt = '%(asctime)s - %(filename)s[line:%(lineno)d] - %(process)d - %(levelname)s - %(message)s'
+
+formatter = logging.Formatter(fmt)  # 实例化formatter
+handler.setFormatter(formatter)  # 为handler添加formatter
+
+logger = logging.getLogger('tst')  # 获取名为tst的logger
+logger.addHandler(handler)  # 为logger添加handler
+logger.setLevel(logging.DEBUG)
+
 
 conf_ini = "/Users/Corazon/PycharmProjects/untitled7/test1.ini"
 
-LISTENER_JOB = (EVENT_JOB_ADDED |
-                EVENT_JOB_REMOVED |
-                EVENT_JOB_MODIFIED |
-                EVENT_JOB_EXECUTED |
-                EVENT_JOB_ERROR |
-                EVENT_JOB_MISSED)
 
-JOB_DEFAULTS = {
-    'misfire_grace_time': 1,
-    'coalesce': False,
-    'max_instances': 3
-}
-EXECUTORS = {
-    'default': ThreadPoolExecutor(),
-    'processpool': ProcessPoolExecutor(4)
-}
 
 def getstatusoutput(cmd):
-    p = subprocess.Popen('{ %s; } 2>&1' % cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    start = time.time()
+    p = subprocess.Popen('%s' % cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     status = p.wait()
+    end = time.time()
+    exec_time = end - start
     stdout = p.stdout.readlines()
-    # stderr = p.stderr.readlines()
-    # end = time.time()
-    # exec_time = end - start
-    # print exec_time
-
+    pid = p.pid
+    logger.debug("主机名:%s - 进程:%d - 返回值:%d - 执行时长:%0.2f/s - 命令:%s - 程序输出:%s" % (gethostname(),pid,status,exec_time,cmd,str(stdout)[0:20481]))
     return status,stdout
-
-
-
-
-
 
 
 class TaskSched:
 
     def __init__(self):
-        # self._sched = BackgroundScheduler(executors=EXECUTORS)
-        self._sched = BackgroundScheduler()
+        self._sched = BackgroundScheduler(max_instances=3,misfire_grace_time=180,coalesce=False)
         self.parser = ConfigParser()
         self._hostname = gethostname()
         self._job_list = []
@@ -81,23 +71,12 @@ class TaskSched:
                 self._job_list.append(new_interval_jobs)
         return self._job_list,len(self._job_list)
 
-    def task2(self,cmd):
-        subprocess.Popen('%s' % cmd,shell=True,stdout=subprocess.PIPE)
-
     def task(self,cmd):
-        print cmd
-        start = time.time()
-        status,stdout = getstatusoutput(cmd)
-        # p = subprocess.Popen('%s' % cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        # status = p.wait()
-        # stdout = p.stdout.readlines()
-        # stderr = p.stderr.readlines()
-        end = time.time()
-        exec_time = end - start
-        print exec_time
+        getstatusoutput(cmd)
 
     def load_sched(self):
         job_list,job_len=self.parser_config(conf_ini)
+
         for num in range(job_len):
             job_info = job_list[num]
             for jobkey,jobvalue in job_info.items():
@@ -105,11 +84,9 @@ class TaskSched:
                 result = self.check_jobs(''.join(jobvalue['cmd']))
                 if result and len(jobvalue['sec']) == 1:
                     arg_list.append(jobvalue['cmd'])
-                    # self.add_task(self.task,'interval',arg_list,seconds=int(''.join(jobvalue['sec'])),id=jobkey, name=jobvalue['name'])
-                    self.add_task(self.task,'interval',arg_list,seconds=int(''.join(jobvalue['sec'])),id=jobkey, name=jobvalue['name'],max_instances=3)
+                    self.add_task(self.task,'interval',arg_list,seconds=int(''.join(jobvalue['sec'])),id=jobkey, name=jobvalue['name'])
                 elif result and len(jobvalue['sec']) == 5:
                     pass
-
     def check_jobs(self,job_name):
         ck_cmd = "ps aux | grep '%s' |grep -v grep" % job_name
         p = subprocess.Popen(ck_cmd,shell=True,stdout=subprocess.PIPE)
@@ -122,18 +99,11 @@ class TaskSched:
     def add_task(self,fun,trig,arg,**kwargs):
         self._sched.add_job(fun,trig,arg,**kwargs)
 
-    def my_listener(event):
-        if event.exception:
-            print('The job crashed :(')
-        else:
-            print('The job worked :)')
-
 
 if __name__ == '__main__':
     ap_sched = TaskSched()
     ap_sched.load_sched()
     ap_sched._sched.start()
-    ap_sched._sched.add_listener(ap_sched.my_listener,LISTENER_JOB)
 
     print 'Press Ctrl+{0} to exit'.format('Break' if os.name == 'nt' else 'C')
 

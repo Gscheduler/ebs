@@ -245,6 +245,8 @@ class ApolloCrond(object):
                     'res_type': 'CRON',
                     'retval': json.dumps(retval),
                    }
+
+
             self.putmsg(json.dumps(info))
         elif EVENT_JOB_MAXINSTANCE == event.code:
             log.info('job[%s] reach max instance, 不被调度' % event.job.name)
